@@ -49,7 +49,7 @@ func ForwardAllSignals(ctx context.Context, task killer) chan os.Signal {
 					log.G(ctx).WithError(err).Debugf("Not forwarding signal %s", s)
 					return
 				}
-				log.G(ctx).WithError(err).Errorf("forward signal %s", s)
+				log.G(ctx).WithError(err).Errorf("problem killing process with signal: %s [%d] - %T", s, s, err)
 			}
 		}
 	}()
