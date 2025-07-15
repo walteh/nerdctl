@@ -26,6 +26,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/containerd/console"
+	"github.com/containerd/containerd/v2/client"
 	"github.com/containerd/log"
 
 	"github.com/containerd/nerdctl/v2/cmd/nerdctl/completion"
@@ -343,6 +344,12 @@ func processCreateCommandFlagsInRun(cmd *cobra.Command) (types.ContainerCreateOp
 	return opt, nil
 }
 
+var hackedClientOpts = []client.Opt{}
+
+func AddHackedClientOpts(opts ...client.Opt) {
+	hackedClientOpts = append(hackedClientOpts, opts...)
+}
+
 // runAction is heavily based on ctr implementation:
 // https://github.com/containerd/containerd/blob/v1.4.3/cmd/ctr/commands/run/run.go
 func runAction(cmd *cobra.Command, args []string) error {
@@ -350,12 +357,12 @@ func runAction(cmd *cobra.Command, args []string) error {
 
 	createOpt, err := processCreateCommandFlagsInRun(cmd)
 	if err != nil {
-		return err
+		return errors.New("failed to process create command flags: " + err.Error())
 	}
 
-	client, ctx, cancel, err := clientutil.NewClientWithPlatform(cmd.Context(), createOpt.GOptions.Namespace, createOpt.GOptions.Address, createOpt.Platform)
+	client, ctx, cancel, err := clientutil.NewClientWithPlatform(cmd.Context(), createOpt.GOptions.Namespace, createOpt.GOptions.Address, createOpt.Platform, hackedClientOpts...)
 	if err != nil {
-		return err
+		return errors.New("failed to create client: " + err.Error())
 	}
 	defer cancel()
 
@@ -382,7 +389,7 @@ func runAction(cmd *cobra.Command, args []string) error {
 		if gc != nil {
 			defer gc()
 		}
-		return err
+		return errors.New("failed to create container: " + err.Error())
 	}
 	// defer setting `nerdctl/error` label in case of error
 	defer func() {
