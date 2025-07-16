@@ -24,12 +24,12 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"syscall"
 	"time"
 
-	"github.com/containerd/containerd/v2/defaults"
 	"github.com/containerd/containerd/v2/pkg/cio"
 )
 
@@ -134,7 +134,7 @@ func NewBinaryCmd(binaryURI *url.URL, id, ns string) *exec.Cmd {
 	return cmd
 }
 
-func NewContainerIO(namespace string, logURI string, tty bool, stdin io.Reader, stdout, stderr io.Writer) cio.Creator {
+func NewContainerIO(namespace string, logURI string, tty bool, stdin io.Reader, stdout, stderr io.Writer, dataRoot string) cio.Creator {
 	return func(id string) (_ cio.IO, err error) {
 		var (
 			cmd     *exec.Cmd
@@ -221,7 +221,7 @@ func NewContainerIO(namespace string, logURI string, tty bool, stdin io.Reader, 
 		streams.Stderr = io.MultiWriter(stderrWriters...)
 
 		if streams.FIFODir == "" {
-			streams.FIFODir = defaults.DefaultFIFODir
+			streams.FIFODir = filepath.Join(dataRoot, "fifo")
 		}
 		fifos, err := cio.NewFIFOSetInDir(streams.FIFODir, id, streams.Terminal)
 		if err != nil {
