@@ -204,7 +204,7 @@ func GenerateSharingPIDOpts(ctx context.Context, targetCon containerd.Container)
 }
 
 // Start starts `container` with `attach` flag. If `attach` is true, it will attach to the container's stdio.
-func Start(ctx context.Context, container containerd.Container, isAttach bool, isInteractive bool, client *containerd.Client, detachKeys string) (err error) {
+func Start(ctx context.Context, container containerd.Container, isAttach bool, isInteractive bool, client *containerd.Client, detachKeys string, dataRoot string) (err error) {
 	// defer the storage of start error in the dedicated label
 	defer func() {
 		if err != nil {
@@ -275,7 +275,8 @@ func Start(ctx context.Context, container containerd.Container, isAttach bool, i
 		// source: https://github.com/containerd/nerdctl/blob/main/docs/command-reference.md#whale-nerdctl-start
 		attachStreamOpt = []string{"STDOUT", "STDERR"}
 	}
-	task, err := taskutil.NewTask(ctx, client, container, attachStreamOpt, isInteractive, isTerminal, true, con, logURI, detachKeys, namespace, detachC)
+	fifoDir := filepath.Join(dataRoot, "fifo")
+	task, err := taskutil.NewTask(ctx, client, container, attachStreamOpt, isInteractive, isTerminal, true, con, logURI, detachKeys, namespace, fifoDir, detachC)
 	if err != nil {
 		return err
 	}

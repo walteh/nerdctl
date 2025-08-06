@@ -52,6 +52,9 @@ const (
 )
 
 func BuildctlBinary() (string, error) {
+	if os.Getenv("BUILDKIT_BUILDCTL_BINARY") != "" {
+		return os.Getenv("BUILDKIT_BUILDCTL_BINARY"), nil
+	}
 	return exec.LookPath("buildctl")
 }
 
@@ -61,8 +64,9 @@ func BuildctlBaseArgs(buildkitHost string) []string {
 
 func GetBuildkitHost(namespace string) (string, error) {
 	if buildkitHost := os.Getenv("BUILDKIT_HOST"); buildkitHost != "" {
-		if _, err := pingBKDaemon(buildkitHost); err != nil {
-			return "", err
+		if out, err := pingBKDaemon(buildkitHost); err != nil {
+			log.L.WithError(err).WithField("buildkitHost", buildkitHost).WithField("output", out).Warn("failed to ping to host")
+			return "", fmt.Errorf("failed to ping to host %s: %w", buildkitHost, err)
 		}
 		return buildkitHost, nil
 	}
@@ -141,7 +145,7 @@ func PingBKDaemon(buildkitHost string) error {
 }
 
 func pingBKDaemon(buildkitHost string) (output string, _ error) {
-	supportedOses := []string{"linux", "freebsd", "windows"}
+	supportedOses := []string{"linux", "freebsd", "windows", "darwin"}
 	if !slices.Contains(supportedOses, runtime.GOOS) {
 		return "", fmt.Errorf("only %s are supported", strings.Join(supportedOses, ", "))
 	}

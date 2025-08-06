@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/opencontainers/runtime-spec/specs-go"
 	"golang.org/x/term"
@@ -85,6 +86,7 @@ func execActionWithContainer(ctx context.Context, client *containerd.Client, con
 	if options.TTY {
 		cioOpts = append(cioOpts, cio.WithTerminal)
 	}
+	cioOpts = append(cioOpts, cio.WithFIFODir(filepath.Join(options.GOptions.DataRoot, "fifo")))
 	ioCreator = cio.NewCreator(cioOpts...)
 
 	execID := "exec-" + idgen.GenerateID()

@@ -43,7 +43,7 @@ import (
 
 // NewTask is from https://github.com/containerd/containerd/blob/v1.4.3/cmd/ctr/commands/tasks/tasks_unix.go#L70-L108
 func NewTask(ctx context.Context, client *containerd.Client, container containerd.Container,
-	attachStreamOpt []string, isInteractive, isTerminal, isDetach bool, con console.Console, logURI, detachKeys, namespace string, detachC chan<- struct{}) (containerd.Task, error) {
+	attachStreamOpt []string, isInteractive, isTerminal, isDetach bool, con console.Console, logURI, detachKeys, namespace, dataRoot string, detachC chan<- struct{}) (containerd.Task, error) {
 
 	var t containerd.Task
 	closer := func() {
@@ -80,10 +80,10 @@ func NewTask(ctx context.Context, client *containerd.Client, container container
 					return nil, err
 				}
 			}
-			ioCreator = cioutil.NewContainerIO(namespace, logURI, true, in, con, nil)
+			ioCreator = cioutil.NewContainerIO(namespace, logURI, true, in, con, nil, dataRoot)
 		} else {
 			streams := processAttachStreamsOpt(attachStreamOpt)
-			ioCreator = cioutil.NewContainerIO(namespace, logURI, false, streams.stdIn, streams.stdOut, streams.stdErr)
+			ioCreator = cioutil.NewContainerIO(namespace, logURI, false, streams.stdIn, streams.stdOut, streams.stdErr, dataRoot)
 		}
 
 	} else if isTerminal && isDetach {
@@ -129,7 +129,7 @@ func NewTask(ctx context.Context, client *containerd.Client, container container
 				return nil, err
 			}
 		}
-		ioCreator = cioutil.NewContainerIO(namespace, logURI, true, in, os.Stdout, os.Stderr)
+		ioCreator = cioutil.NewContainerIO(namespace, logURI, true, in, os.Stdout, os.Stderr, dataRoot)
 	} else if isDetach && logURI != "" && logURI != "none" {
 		u, err := url.Parse(logURI)
 		if err != nil {
@@ -156,7 +156,7 @@ func NewTask(ctx context.Context, client *containerd.Client, container container
 			}
 			in = stdinC
 		}
-		ioCreator = cioutil.NewContainerIO(namespace, logURI, false, in, os.Stdout, os.Stderr)
+		ioCreator = cioutil.NewContainerIO(namespace, logURI, false, in, os.Stdout, os.Stderr, dataRoot)
 	}
 	t, err := container.NewTask(ctx, ioCreator)
 	if err != nil {

@@ -123,6 +123,7 @@ func execOptions(cmd *cobra.Command) (types.ContainerExecOptions, error) {
 }
 
 func execAction(cmd *cobra.Command, args []string) error {
+
 	options, err := execOptions(cmd)
 	if err != nil {
 		return err
@@ -135,7 +136,7 @@ func execAction(cmd *cobra.Command, args []string) error {
 		args = newArg
 	}
 
-	client, ctx, cancel, err := clientutil.NewClient(cmd.Context(), options.GOptions.Namespace, options.GOptions.Address)
+	client, ctx, cancel, err := clientutil.NewClient(cmd.Context(), options.GOptions.Namespace, options.GOptions.Address, hackedClientOpts...)
 	if err != nil {
 		return err
 	}

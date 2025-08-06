@@ -23,8 +23,6 @@ import (
 	"github.com/containerd/containerd/v2/pkg/oci"
 	"github.com/containerd/errdefs"
 	"github.com/containerd/log"
-
-	"github.com/containerd/nerdctl/v2/pkg/mountutil/volumestore"
 )
 
 const (
@@ -40,7 +38,7 @@ func UnprivilegedMountFlags(path string) ([]string, error) {
 
 // parseVolumeOptions parses specified optsRaw with using information of
 // the volume type and the src directory when necessary.
-func parseVolumeOptions(vType, src, optsRaw string) ([]string, []oci.SpecOpts, error) {
+func parseVolumeOptionsMac(vType, src, optsRaw string) ([]string, []oci.SpecOpts, error) {
 	var writeModeRawOpts []string
 	for _, opt := range strings.Split(optsRaw, ",") {
 		switch opt {
@@ -64,9 +62,5 @@ func parseVolumeOptions(vType, src, optsRaw string) ([]string, []oci.SpecOpts, e
 }
 
 func ProcessFlagTmpfs(s string) (*Processed, error) {
-	return nil, errdefs.ErrNotImplemented
-}
-
-func ProcessFlagMount(s string, volStore volumestore.VolumeStore) (*Processed, error) {
 	return nil, errdefs.ErrNotImplemented
 }

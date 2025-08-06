@@ -86,7 +86,7 @@ func startAction(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("service %q has no container to start", svcName)
 		}
 
-		if err := startContainers(ctx, client, containers); err != nil {
+		if err := startContainers(ctx, client, containers, globalOptions.DataRoot); err != nil {
 			return err
 		}
 	}
@@ -94,7 +94,7 @@ func startAction(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func startContainers(ctx context.Context, client *containerd.Client, containers []containerd.Container) error {
+func startContainers(ctx context.Context, client *containerd.Client, containers []containerd.Container, dataRoot string) error {
 	eg, ctx := errgroup.WithContext(ctx)
 	for _, c := range containers {
 		c := c
@@ -112,7 +112,7 @@ func startContainers(ctx context.Context, client *containerd.Client, containers 
 			}
 
 			// in compose, always disable attach
-			if err := containerutil.Start(ctx, c, false, false, client, ""); err != nil {
+			if err := containerutil.Start(ctx, c, false, false, client, "", dataRoot); err != nil {
 				return err
 			}
 			info, err := c.Info(ctx, containerd.WithoutRefreshedMetadata)
