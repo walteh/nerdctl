@@ -139,7 +139,7 @@ func xmain() error {
 		return logging.Main(os.Args[2])
 	}
 	// nerdctl CLI mode
-	app, err := newApp()
+	app, err := NewApp()
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func initRootCmdFlags(rootCmd *cobra.Command, tomlPath string) (*pflag.FlagSet, 
 	return aliasToBeInherited, nil
 }
 
-func newApp() (*cobra.Command, error) {
+func NewApp() (*cobra.Command, error) {
 	tomlPath := ncdefaults.NerdctlTOML()
 	if v, ok := os.LookupEnv("NERDCTL_TOML"); ok {
 		tomlPath = v
