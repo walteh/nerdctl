@@ -26,7 +26,6 @@ import (
 	"golang.org/x/term"
 
 	"github.com/containerd/console"
-	"github.com/containerd/containerd/v2/client"
 	"github.com/containerd/log"
 
 	"github.com/containerd/nerdctl/v2/cmd/nerdctl/completion"
@@ -353,12 +352,6 @@ func processCreateCommandFlagsInRun(cmd *cobra.Command) (types.ContainerCreateOp
 	return opt, nil
 }
 
-var hackedClientOpts = []client.Opt{}
-
-func AddHackedClientOpts(opts ...client.Opt) {
-	hackedClientOpts = append(hackedClientOpts, opts...)
-}
-
 // runAction is heavily based on ctr implementation:
 // https://github.com/containerd/containerd/blob/v1.4.3/cmd/ctr/commands/run/run.go
 func runAction(cmd *cobra.Command, args []string) error {
@@ -369,7 +362,7 @@ func runAction(cmd *cobra.Command, args []string) error {
 		return errors.New("failed to process create command flags: " + err.Error())
 	}
 
-	client, ctx, cancel, err := clientutil.NewClientWithPlatform(cmd.Context(), createOpt.GOptions.Namespace, createOpt.GOptions.Address, createOpt.Platform, hackedClientOpts...)
+	client, ctx, cancel, err := clientutil.NewClientWithPlatform(cmd.Context(), createOpt.GOptions.Namespace, createOpt.GOptions.Address, createOpt.Platform)
 	if err != nil {
 		return errors.New("failed to create client: " + err.Error())
 	}
