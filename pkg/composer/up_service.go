@@ -117,7 +117,7 @@ func (c *Composer) ensureServiceImage(ctx context.Context, ps *serviceparser.Ser
 		log.G(ctx).Debugf("Image %s already exists, not building", ps.Image)
 	}
 
-	log.G(ctx).Infof("Ensuring image %s", ps.Image)
+	log.G(ctx).Infof("Ensuring image '%s' for platform '%s'", ps.Image, ps.Unparsed.Platform)
 	if pullModeArg != "" {
 		return c.EnsureImage(ctx, ps.Image, pullModeArg, ps.Unparsed.Platform, ps, quiet)
 	}
