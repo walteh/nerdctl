@@ -24,13 +24,12 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"syscall"
 	"time"
 
-	"github.com/containerd/containerd/v2/cmd/containerd-shim-runc-v2/process"
-	"github.com/containerd/containerd/v2/defaults"
 	"github.com/containerd/containerd/v2/pkg/cio"
 )
 
@@ -115,7 +114,29 @@ func (c *ncio) Cancel() {
 	}
 }
 
-func NewContainerIO(namespace string, logURI string, tty bool, stdin io.Reader, stdout, stderr io.Writer) cio.Creator {
+// NewBinaryCmd returns a Cmd to be used to start a logging binary.
+// The Cmd is generated from the provided uri, and the container ID and
+// namespace are appended to the Cmd environment.
+func NewBinaryCmd(binaryURI *url.URL, id, ns string) *exec.Cmd {
+	var args []string
+	for k, vs := range binaryURI.Query() {
+		args = append(args, k)
+		if len(vs) > 0 {
+			args = append(args, vs[0])
+		}
+	}
+
+	cmd := exec.Command(binaryURI.Path, args...)
+
+	cmd.Env = append(cmd.Env,
+		"CONTAINER_ID="+id,
+		"CONTAINER_NAMESPACE="+ns,
+	)
+
+	return cmd
+}
+
+func NewContainerIO(namespace string, logURI string, tty bool, stdin io.Reader, stdout, stderr io.Writer, dataRoot string) cio.Creator {
 	return func(id string) (_ cio.IO, err error) {
 		var (
 			cmd     *exec.Cmd
@@ -174,7 +195,7 @@ func NewContainerIO(namespace string, logURI string, tty bool, stdin io.Reader, 
 			if err != nil {
 				return nil, err
 			}
-			cmd = process.NewBinaryCmd(u, id, namespace)
+			cmd = NewBinaryCmd(u, id, namespace)
 			cmd.ExtraFiles = append(cmd.ExtraFiles, stdoutr, stderrr, w)
 
 			if err := cmd.Start(); err != nil {
@@ -202,7 +223,7 @@ func NewContainerIO(namespace string, logURI string, tty bool, stdin io.Reader, 
 		streams.Stderr = io.MultiWriter(stderrWriters...)
 
 		if streams.FIFODir == "" {
-			streams.FIFODir = defaults.DefaultFIFODir
+			streams.FIFODir = filepath.Join(dataRoot, "fifo")
 		}
 		fifos, err := cio.NewFIFOSetInDir(streams.FIFODir, id, streams.Terminal)
 		if err != nil {

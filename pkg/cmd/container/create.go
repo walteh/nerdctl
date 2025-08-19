@@ -118,9 +118,15 @@ func Create(ctx context.Context, client *containerd.Client, args []string, netMa
 		return nil, nil, err
 	}
 
-	opts = append(opts,
-		oci.WithDefaultSpec(),
-	)
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		opts = append(opts,
+			oci.WithDefaultSpecForPlatform("linux/arm64"),
+		)
+	} else {
+		opts = append(opts,
+			oci.WithDefaultSpec(),
+		)
+	}
 
 	platformOpts, err := setPlatformOptions(ctx, client, id, netManager.NetworkOptions().UTSNamespace, &internalLabels, options)
 	if err != nil {
@@ -401,6 +407,11 @@ func Create(ctx context.Context, client *containerd.Client, args []string, netMa
 
 	opts = append(opts, propagateInternalContainerdLabelsToOCIAnnotations(),
 		oci.WithAnnotations(strutil.ConvertKVStringsToMap(options.Annotations)))
+
+	// opts = append(opts, oci.GenerateSpecWithPlatform(oci.Platform{
+	// 	Architecture: "arm64",
+	// 	OS:           "linux",
+	// }))
 
 	var s specs.Spec
 	spec := containerd.WithSpec(&s, opts...)

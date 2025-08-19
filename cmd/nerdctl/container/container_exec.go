@@ -123,6 +123,7 @@ func execOptions(cmd *cobra.Command) (types.ContainerExecOptions, error) {
 }
 
 func execAction(cmd *cobra.Command, args []string) error {
+
 	options, err := execOptions(cmd)
 	if err != nil {
 		return err

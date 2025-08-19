@@ -359,12 +359,12 @@ func runAction(cmd *cobra.Command, args []string) error {
 
 	createOpt, err := processCreateCommandFlagsInRun(cmd)
 	if err != nil {
-		return err
+		return errors.New("failed to process create command flags: " + err.Error())
 	}
 
 	client, ctx, cancel, err := clientutil.NewClientWithPlatform(cmd.Context(), createOpt.GOptions.Namespace, createOpt.GOptions.Address, createOpt.Platform)
 	if err != nil {
-		return err
+		return errors.New("failed to create client: " + err.Error())
 	}
 	defer cancel()
 
@@ -391,7 +391,7 @@ func runAction(cmd *cobra.Command, args []string) error {
 		if gc != nil {
 			defer gc()
 		}
-		return err
+		return errors.New("failed to create container: " + err.Error())
 	}
 	// defer setting `nerdctl/error` label in case of error
 	defer func() {
@@ -431,7 +431,7 @@ func runAction(cmd *cobra.Command, args []string) error {
 	logURI := lab[labels.LogURI]
 	detachC := make(chan struct{})
 	task, err := taskutil.NewTask(ctx, client, c, createOpt.Attach, createOpt.Interactive, createOpt.TTY, createOpt.Detach,
-		con, logURI, createOpt.DetachKeys, createOpt.GOptions.Namespace, detachC)
+		con, logURI, createOpt.DetachKeys, createOpt.GOptions.Namespace, createOpt.GOptions.DataRoot, detachC)
 	if err != nil {
 		return err
 	}
